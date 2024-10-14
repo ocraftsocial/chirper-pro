@@ -1,2 +1,1 @@
-# chirper-pro
-An advanced version of chirper (via bootcamp.laravel.com)
+This is a chirper-pro, an advanced and feature-rich clone or chirper by bootcamp.
