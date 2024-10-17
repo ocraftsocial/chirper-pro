@@ -22,11 +22,12 @@ Route::middleware('auth')->group(function () {
 
 // Routes for chirps (posts)
 Route::resource('chirps', ChirpController::class)
-    ->only(['index', 'store'])
+    ->only(['index', 'store', 'edit', 'update'])
     ->middleware(['auth', 'verified']);
 
 
-    Route::get('/chirps/download/{id}', [ChirpController::class, 'downloadChirpFiles'])->name('chirps.download');
+    Route::get('/chirps/download/{id}', [ChirpController::class, 'downloadChirpFiles'])->middleware(['auth', 'verified'])->name('chirps.download');
+    Route::get('/chirps/image/{id}', [ChirpController::class, 'getImage'])->middleware(['auth', 'verified'])->name('chirps.image');   
     require __DIR__.'/auth.php';
 
     

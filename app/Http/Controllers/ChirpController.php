@@ -8,6 +8,7 @@ use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
 use ZipArchive;
+use Illuminate\Support\Facades\Gate;
 
 class ChirpController extends Controller
 {
@@ -46,7 +47,7 @@ class ChirpController extends Controller
             $uniqueId = uniqid(); // Generate a unique ID
             $newFileName = 'sys_' . $timestamp . '_' . $uniqueId . '.' . $originalExtension;
 
-            $path = $file->storeAs('uploads/chirps', $newFileName, 'public');
+            $path = $file->storeAs('uploads/chirps', $newFileName, 'local');
             $filePaths[] = $path;
         }
     }
@@ -75,7 +76,7 @@ public function downloadChirpFiles($id)
 
     if ($zip->open($zipFileName, ZipArchive::CREATE | ZipArchive::OVERWRITE) === TRUE) {
         foreach ($filePaths as $filePath) {
-            $fullPath = storage_path('app/public/' . $filePath);
+            $fullPath = storage_path('app/local/' . $filePath);
             if (file_exists($fullPath)) {
                 $zip->addFile($fullPath, basename($filePath));
             }
@@ -91,4 +92,27 @@ public function downloadChirpFiles($id)
         'Content-Disposition' => 'attachment; filename="' . $zipFileName . '"',
     ]);
 }   
+
+public function getImage($id)
+{
+    $chirp = Chirp::findOrFail($id);
+    
+    // Check if the authenticated user is the author of the chirp
+    if (Gate::allows('view-chirp', $chirp)) {
+        $filePaths = json_decode($chirp->files, true);
+        
+        // Assuming you want to return the first file's path for the image
+        $imagePath = $filePaths[0]; // Adjust this logic if needed
+        
+        $path = storage_path('app/local/' . $imagePath);
+
+        if (file_exists($path)) {
+            return response()->file($path);
+        }
+
+        abort(404);
+    }
+
+    abort(403); // Forbidden if the user is not the author
+}
 }
