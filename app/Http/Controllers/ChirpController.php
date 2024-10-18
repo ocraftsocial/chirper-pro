@@ -91,19 +91,41 @@ public function downloadChirpFiles($id)
         'Content-Type' => 'application/zip',
         'Content-Disposition' => 'attachment; filename="' . $zipFileName . '"',
     ]);
-}   
+}
+
+public function downloadChirpFile($id)
+{
+    $chirp = Chirp::findOrFail($id);
+    $filePaths = json_decode($chirp->files, true);
+
+    // Assuming you want to download the first file for simplicity; adjust as needed
+    if (empty($filePaths)) {
+        abort(404);
+    }
+
+    // Get the first file path
+    $filePath = $filePaths[0]; // Change this logic if you want to specify which file to download
+    $fullPath = storage_path('app/local/' . $filePath);
+
+    // Check if the file exists
+    if (!file_exists($fullPath)) {
+        abort(404);
+    }
+
+    return response()->download($fullPath);
+}
 
 public function getImage($id)
 {
     $chirp = Chirp::findOrFail($id);
-    
+
     // Check if the authenticated user is the author of the chirp
     if (Gate::allows('view-chirp', $chirp)) {
         $filePaths = json_decode($chirp->files, true);
-        
+
         // Assuming you want to return the first file's path for the image
         $imagePath = $filePaths[0]; // Adjust this logic if needed
-        
+
         $path = storage_path('app/local/' . $imagePath);
 
         if (file_exists($path)) {

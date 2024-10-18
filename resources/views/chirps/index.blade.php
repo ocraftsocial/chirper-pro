@@ -6,7 +6,7 @@
                 placeholder="{{ __('What\'s on your mind?') }}"
                 class="block w-full border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm">{{ old('message') }}</textarea>
             <x-input-error :messages="$errors->get('message')" class="mt-2" />
-            
+
             <!-- File Upload Section -->
             <div class="mb-4">
                 <label for="files" class="block text-sm font-medium text-gray-700">Choose Files</label>
@@ -69,7 +69,7 @@
                                             </div>
 
                                             <!-- Download Button -->
-                                            <a href="{{ route('chirps.download', ['id' => $chirp->id]) }}" class="text-gray-400 hover:text-gray-800">
+                                            <a href="{{ route('chirps.downloadFile', ['id' => $chirp->id]) }}" class="text-gray-400 hover:text-gray-800">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-12 p-1 w-12 mr-8 bg-gray-200 rounded-lg" fill="none"
                                                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
