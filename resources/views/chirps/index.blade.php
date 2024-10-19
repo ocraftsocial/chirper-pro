@@ -1,36 +1,36 @@
 <x-app-layout>
-    <div class="max-w-2xl mx-auto p-4 sm:p-6 lg:p-8">
+    <div class="max-w-2xl p-4 mx-auto sm:p-6 lg:p-8">
         <form method="POST" action="{{ route('chirps.store') }}" enctype="multipart/form-data" id="chirp-form">
             @csrf
             <textarea name="message"
                 placeholder="{{ __('What\'s on your mind?') }}"
-                class="block w-full border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm">{{ old('message') }}</textarea>
+                class="block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">{{ old('message') }}</textarea>
             <x-input-error :messages="$errors->get('message')" class="mt-2" />
 
             <!-- File Upload Section -->
             <div class="mb-4">
                 <label for="files" class="block text-sm font-medium text-gray-700">Choose Files</label>
-                <input type="file" name="files[]" id="files" class="mt-2 w-full px-4 py-2 rounded" multiple onchange="previewFiles()">
+                <input type="file" name="files[]" id="files" class="w-full px-4 py-2 mt-2 rounded" multiple onchange="previewFiles()">
             </div>
             <x-input-error :messages="$errors->get('files')" class="mt-2" />
 
             <!-- Preview Area for Files -->
-            <div id="file-preview" class="mt-4 flex flex-col gap-4"></div>
+            <div id="file-preview" class="flex flex-col gap-4 mt-4"></div>
 
             <x-primary-button class="mt-4">{{ __('Chirp') }}</x-primary-button>
         </form>
 
-        <div class="mt-6 bg-white shadow-sm rounded-lg divide-y">
+        <div class="mt-6 bg-white divide-y rounded-lg shadow-sm">
             @foreach($chirps as $chirp)
-                <div class="p-6 flex space-x-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600 -scale-x-100" fill="none"
+                <div class="flex p-6 space-x-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-600 -scale-x-100" fill="none"
                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
 
                     <div class="flex-1">
-                        <div class="flex justify-between items-center">
+                        <div class="flex items-center justify-between">
                             <div>
                                 <span class="text-gray-800">{{ $chirp->user->name }}</span>
                                 <small class="ml-2 text-sm text-gray-600">{{ $chirp->created_at->format('j M Y, g:i a') }}</small>
@@ -41,7 +41,7 @@
 
                         @if($chirp->files)
                             <div class="mt-4">
-                                <h3 class="text-sm text-gray-700 mb-2 bg-gray-100">Uploaded Files:</h3>
+                                <h3 class="mb-2 text-sm text-gray-700 bg-gray-100">Uploaded Files:</h3>
                                 <div class="flex flex-col gap-4">
                                     @php
                                         // Check if chirp->files is an array or a JSON string
@@ -56,12 +56,12 @@
                                         <div class="flex items-center justify-between space-x-2">
                                             <div class="flex items-center space-x-2">
                                                 @if($isImage)
-                                                    <a href="{{ route('chirps.image', $chirp->id) }}" target="_blank" class="block">
-                                                        <img src="{{ route('chirps.image', $chirp->id) }}" alt="Chirp Image" class="w-16 h-16 object-cover rounded-lg">
-                                                    </a>
+                                                <a href="{{ route('chirps.image', ['id' => $chirp->id, 'file' => basename($file)]) }}" target="_blank" class="block">
+                                                    <img src="{{ route('chirps.image', ['id' => $chirp->id, 'file' => basename($file)]) }}" alt="Chirp Image" class="object-cover w-16 h-16 rounded-lg">
+                                                </a>
                                                 @else
                                                     <!-- Placeholder for non-image files -->
-                                                    <div class="w-16 h-16 bg-gray-200 flex justify-center items-center text-sm text-gray-600 rounded-lg">
+                                                    <div class="flex items-center justify-center w-16 h-16 text-sm text-gray-600 bg-gray-200 rounded-lg">
                                                         <img src="https://d9-wret.s3.us-west-2.amazonaws.com/assets/palladium/production/s3fs-public/thumbnails/image/file.jpg" alt="File Placeholder" class="object-cover w-full h-full rounded-lg">
                                                     </div>
                                                 @endif
@@ -69,8 +69,7 @@
                                             </div>
 
                                             <!-- Download Button -->
-                                            <a href="{{ route('chirps.downloadFile', ['id' => $chirp->id]) }}" class="text-gray-400 hover:text-gray-800">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 p-1 w-12 mr-8 bg-gray-200 rounded-lg" fill="none"
+                                            <a href="{{ route('chirps.downloadFile', ['id' => $chirp->id, 'file' => basename($file)]) }}" class="text-gray-400 hover:text-gray-800">                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 p-1 mr-8 bg-gray-200 rounded-lg" fill="none"
                                                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         d="M12 3v12.75m0 0l-3-3m3 3l3-3m5 5H4" />
@@ -82,7 +81,7 @@
 
                                 <!-- Show ZIP download link if there are multiple files -->
                                 @if(count($files) > 1)
-                                    <a href="{{ route('chirps.download', ['id' => $chirp->id]) }}" class="inline-block mt-4 px-4 py-2 text-white bg-blue-500 hover:bg-blue-700 rounded">
+                                    <a href="{{ route('chirps.download', ['id' => $chirp->id]) }}" class="inline-block px-4 py-2 mt-4 text-white bg-blue-500 rounded hover:bg-blue-700">
                                         Download All Files as ZIP
                                     </a>
                                 @endif
@@ -116,12 +115,12 @@
                         previewElement.classList.add('flex', 'items-center', 'justify-between', 'space-x-2');
                         previewElement.innerHTML = `
                             <div class="flex items-center space-x-2">
-                                <div class="relative w-16 h-16 rounded-lg overflow-hidden">
+                                <div class="relative w-16 h-16 overflow-hidden rounded-lg">
                                     <img src="${e.target.result}" alt="${file.name}" class="object-cover w-full h-full">
                                 </div>
                                 <span class="text-sm text-gray-700">${file.name}</span>
                             </div>
-                            <button type="button" class="text-red-500 hover:text-red-700 text-5xl" onclick="removeFilePreview(event)">
+                            <button type="button" class="text-5xl text-red-500 hover:text-red-700" onclick="removeFilePreview(event)">
                                 ×
                             </button>
                         `;
@@ -129,11 +128,11 @@
                         previewElement = document.createElement('div');
                         previewElement.classList.add('flex', 'items-center', 'justify-between', 'space-x-2');
                         previewElement.innerHTML = `
-                            <div class="w-16 h-16 bg-gray-200 flex justify-center items-center text-sm text-gray-600 rounded-lg">
+                            <div class="flex items-center justify-center w-16 h-16 text-sm text-gray-600 bg-gray-200 rounded-lg">
                                 <img src="https://d9-wret.s3.us-west-2.amazonaws.com/assets/palladium/production/s3fs-public/thumbnails/image/file.jpg" alt="File Placeholder" class="object-cover w-full h-full rounded-lg">
                             </div>
                             <span class="text-sm text-gray-700">${file.name}</span>
-                            <button type="button" class="text-red-500 hover:text-red-700 text-5xl" onclick="removeFilePreview(event)">
+                            <button type="button" class="text-5xl text-red-500 hover:text-red-700" onclick="removeFilePreview(event)">
                                 ×
                             </button>
                         `;

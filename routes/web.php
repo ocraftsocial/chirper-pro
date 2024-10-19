@@ -28,8 +28,11 @@ Route::resource('chirps', ChirpController::class)
 
     Route::get('/chirps/download/{id}', [ChirpController::class, 'downloadChirpFiles'])->middleware(['auth', 'verified'])->name('chirps.download');
 // Single File Donwload
-    Route::get('/chirps/download-file/{id}', [ChirpController::class, 'downloadChirpFile'])->name('chirps.downloadFile');
-    Route::get('/chirps/image/{id}', [ChirpController::class, 'getImage'])->middleware(['auth', 'verified'])->name('chirps.image');
+    Route::get('/chirps/download-file/{id}/{file}', [ChirpController::class, 'downloadChirpFile'])->name('chirps.downloadFile');
+
+
+// Add this route to the existing chirps routes
+    Route::get('/chirps/image/{id}/{file}', [ChirpController::class, 'getImage'])->middleware(['auth', 'verified'])->name('chirps.image');
     require __DIR__.'/auth.php';
 
 
