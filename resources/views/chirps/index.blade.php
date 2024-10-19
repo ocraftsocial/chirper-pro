@@ -52,7 +52,7 @@
                                         @php
                                             $isImage = in_array(pathinfo($file, PATHINFO_EXTENSION), ['jpg', 'jpeg', 'png', 'gif']);
                                         @endphp
-
+// test
                                         <div class="flex items-center justify-between space-x-2">
                                             <div class="flex items-center space-x-2">
                                                 @if($isImage)
