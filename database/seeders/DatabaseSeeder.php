@@ -5,6 +5,8 @@ namespace Database\Seeders;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
+
 
 class DatabaseSeeder extends Seeder
 {
@@ -18,8 +20,7 @@ class DatabaseSeeder extends Seeder
         User::factory()->create([
             'name' => 'admin',
             'email' => 'or.ellenbogen@gmail.com',
-            'password' => bcrypt('123456789'),
-        
-        ]);
+            'password' => Hash::make(env('ADMIN_PASSWORD')), // Fetch password from .env
+                    ]);
     }
 }

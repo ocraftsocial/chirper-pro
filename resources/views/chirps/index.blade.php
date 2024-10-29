@@ -15,7 +15,7 @@
             <x-input-error :messages="$errors->get('files')" class="mt-2" />
 
             <!-- Preview Area for Files -->
-            <div id="file-preview" class="flex flex-col gap-4 mt-4"></div>
+            <div id="file-preview" class="flex flex-wrap gap-4 mt-4"></div>
 
             <x-primary-button class="mt-4">{{ __('Chirp') }}</x-primary-button>
         </form>
@@ -42,49 +42,57 @@
                         @if($chirp->files)
                             <div class="mt-4">
                                 <h3 class="mb-2 text-sm text-gray-700 bg-gray-100">Uploaded Files:</h3>
-                                <div class="flex flex-col gap-4">
+                                <div class="flex flex-wrap gap-4">
                                     @php
-                                        // Check if chirp->files is an array or a JSON string
                                         $files = is_array($chirp->files) ? $chirp->files : json_decode($chirp->files, true);
                                     @endphp
 
                                     @foreach($files as $file)
                                         @php
                                             $isImage = in_array(pathinfo($file, PATHINFO_EXTENSION), ['jpg', 'jpeg', 'png', 'gif']);
+                                            $fileName = basename($file);
+                                            $fileExtension = pathinfo($fileName, PATHINFO_EXTENSION);
+                                            $shortDescription = substr($fileName, 0, 5) . '.' . $fileExtension;
                                         @endphp
-// test
-                                        <div class="flex items-center justify-between space-x-2">
-                                            <div class="flex items-center space-x-2">
-                                                @if($isImage)
-                                                <a href="{{ route('chirps.image', ['id' => $chirp->id, 'file' => basename($file)]) }}" target="_blank" class="block">
-                                                    <img src="{{ route('chirps.image', ['id' => $chirp->id, 'file' => basename($file)]) }}" alt="Chirp Image" class="object-cover w-16 h-16 rounded-lg">
+                                        <div class="flex flex-col items-center">
+                                            @if($isImage)
+                                                <a href="{{ route('chirps.image', ['id' => $chirp->id, 'file' => $fileName]) }}" target="_blank" class="block">
+                                                    <img src="{{ route('chirps.image', ['id' => $chirp->id, 'file' => $fileName]) }}" alt="Chirp Image" class="object-cover w-16 h-16 rounded-lg">
                                                 </a>
-                                                @else
-                                                    <!-- Placeholder for non-image files -->
-                                                    <div class="flex items-center justify-center w-16 h-16 text-sm text-gray-600 bg-gray-200 rounded-lg">
-                                                        <img src="https://d9-wret.s3.us-west-2.amazonaws.com/assets/palladium/production/s3fs-public/thumbnails/image/file.jpg" alt="File Placeholder" class="object-cover w-full h-full rounded-lg">
-                                                    </div>
-                                                @endif
-                                                <span class="text-sm text-gray-700">{{ basename($file) }}</span>
-                                            </div>
-
-                                            <!-- Download Button -->
-                                            <a href="{{ route('chirps.downloadFile', ['id' => $chirp->id, 'file' => basename($file)]) }}" class="text-gray-400 hover:text-gray-800">                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 p-1 mr-8 bg-gray-200 rounded-lg" fill="none"
-                                                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        d="M12 3v12.75m0 0l-3-3m3 3l3-3m5 5H4" />
-                                                </svg>
-                                            </a>
+                                            @else
+                                                <div class="flex items-center justify-center w-16 h-16 text-sm text-gray-600 bg-gray-200 rounded-lg">
+                                                    <img src="https://d9-wret.s3.us-west-2.amazonaws.com/assets/palladium/production/s3fs-public/thumbnails/image/file.jpg" alt="File Placeholder" class="object-cover w-full h-full rounded-lg">
+                                                </div>
+                                            @endif
+                                            <span class="text-sm text-gray-700">{{ $shortDescription }}</span>
                                         </div>
                                     @endforeach
                                 </div>
+<!-- Input for Setting View Limit -->
+<div class="mt-4 flex items-center">
+    <label for="view_limit_{{ $chirp->id }}" class="block text-sm font-medium text-gray-700 mr-2">Set View Limit</label>
+    <input type="number" id="view_limit_{{ $chirp->id }}" class="w-24 px-2 py-1 border-gray-300 rounded-md" value="1" min="0">
+</div>
 
-                                <!-- Show ZIP download link if there are multiple files -->
-                                @if(count($files) > 1)
-                                    <a href="{{ route('chirps.download', ['id' => $chirp->id]) }}" class="inline-block px-4 py-2 mt-4 text-white bg-blue-500 rounded hover:bg-blue-700">
-                                        Download All Files as ZIP
-                                    </a>
-                                @endif
+<div class="mt-4 flex items-center">
+    <label for="expiration_time_{{ $chirp->id }}" class="block text-sm font-medium text-gray-700 mr-2">Expiration Time (minutes)</label>
+    <input type="number" name="time_limit" id="expiration_time_{{ $chirp->id }}" class="w-24 px-2 py-1 border-gray-300 rounded-md" value="60" min="0">
+</div>
+
+                                <!-- Action Buttons -->
+                                <div class="mt-4 flex space-x-2">
+                                    <!-- Download All Files Button -->
+                                    @if(count($files) > 1)
+                                        <a href="{{ route('chirps.download', ['id' => $chirp->id]) }}" class="inline-block px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-700">
+                                            Download All Files as ZIP
+                                        </a>
+                                    @endif
+
+                                    <!-- Share Files Button -->
+                                    <button class="share-file-btn inline-block px-4 py-2 text-white bg-green-500 rounded hover:bg-green-700" data-chirp-id="{{ $chirp->id }}" data-view-limit-input="#view_limit_{{ $chirp->id }}">
+                                        Share Files
+                                    </button>
+                                </div>
                             </div>
                         @endif
                     </div>
@@ -112,26 +120,24 @@
 
                     if (fileType === 'image') {
                         previewElement = document.createElement('div');
-                        previewElement.classList.add('flex', 'items-center', 'justify-between', 'space-x-2');
+                        previewElement.classList.add('flex', 'flex-col', 'items-center');
                         previewElement.innerHTML = `
-                            <div class="flex items-center space-x-2">
-                                <div class="relative w-16 h-16 overflow-hidden rounded-lg">
-                                    <img src="${e.target.result}" alt="${file.name}" class="object-cover w-full h-full">
-                                </div>
-                                <span class="text-sm text-gray-700">${file.name}</span>
+                            <div class="relative w-16 h-16 overflow-hidden rounded-lg">
+                                <img src="${e.target.result}" alt="${file.name}" class="object-cover w-full h-full">
                             </div>
+                            <span class="text-sm text-gray-700">${file.name.substring(0, 5)}.${file.name.split('.').pop()}</span>
                             <button type="button" class="text-5xl text-red-500 hover:text-red-700" onclick="removeFilePreview(event)">
                                 ×
                             </button>
                         `;
                     } else {
                         previewElement = document.createElement('div');
-                        previewElement.classList.add('flex', 'items-center', 'justify-between', 'space-x-2');
+                        previewElement.classList.add('flex', 'flex-col', 'items-center');
                         previewElement.innerHTML = `
                             <div class="flex items-center justify-center w-16 h-16 text-sm text-gray-600 bg-gray-200 rounded-lg">
                                 <img src="https://d9-wret.s3.us-west-2.amazonaws.com/assets/palladium/production/s3fs-public/thumbnails/image/file.jpg" alt="File Placeholder" class="object-cover w-full h-full rounded-lg">
                             </div>
-                            <span class="text-sm text-gray-700">${file.name}</span>
+                            <span class="text-sm text-gray-700">${file.name.substring(0, 5)}.${file.name.split('.').pop()}</span>
                             <button type="button" class="text-5xl text-red-500 hover:text-red-700" onclick="removeFilePreview(event)">
                                 ×
                             </button>
@@ -179,5 +185,54 @@
 
             fileInput.files = dataTransfer.files; // Update the input with the remaining files
         });
+
+        document.querySelectorAll('.share-file-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const chirpId = this.getAttribute('data-chirp-id');
+        const viewLimitInput = this.getAttribute('data-view-limit-input');
+        const viewLimit = document.querySelector(viewLimitInput).value;
+
+        // Capture the time limit from the corresponding input field
+        const timeLimitInput = document.getElementById(`expiration_time_${chirpId}`);
+        const timeLimit = timeLimitInput ? timeLimitInput.value : 0; // Default to 0 if not found
+
+        fetch(`/chirps/${chirpId}/share`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ view_limit: viewLimit, time_limit: timeLimit }), // Include time_limit
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
+        .then(data => {
+            if (data.share_link) {
+                // Copy the share link to the clipboard
+                navigator.clipboard.writeText(data.share_link).then(() => {
+                    // Change the button text to indicate success
+                    button.textContent = 'Copied!';
+                    button.classList.remove('bg-green-500', 'hover:bg-green-700');
+                    button.classList.add('bg-gray-500', 'hover:bg-gray-700');
+                });
+            } else {
+                button.textContent = 'Share Failed';
+                setTimeout(() => {
+                    button.textContent = 'Share Files';
+                }, 2000); // Reset button text after 2 seconds
+            }
+        })
+        .catch(error => {
+            console.error('There was a problem with the fetch operation:', error);
+            button.textContent = 'Error';
+            setTimeout(() => {
+                button.textContent = 'Share Files';
+            }, 2000); // Reset button text after 2 seconds
+        });
+    });
+});
+
     </script>
 </x-app-layout>
